@@ -90,3 +90,19 @@ http://localhost:5678
 ## Author
 
 Niklas Ringeisen
+
+---
+
+## Screenshots
+
+### Workflow
+
+![Workflow](docs/workflow.png)
+
+### Database
+
+![Database](docs/database.png)
+
+### Docker Containers
+
+![Docker](docs/docker.png)
