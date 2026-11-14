@@ -53,7 +53,10 @@ n8n · OpenAI API · JavaScript · PostgreSQL · Docker
 docker compose up -d
 ```
 
-Open n8n at http://localhost:5678, add your OpenAI and PostgreSQL credentials and run the workflow.
+1. Create the `tickets` table with [`sql/create_tickets_table.sql`](sql/create_tickets_table.sql)
+2. Open n8n at http://localhost:5678
+3. Import [`workflow/ticket-analysis.json`](workflow/ticket-analysis.json)
+4. Add your own OpenAI and PostgreSQL credentials and run the workflow
 
 ---
 
