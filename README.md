@@ -1,170 +1,135 @@
-# Sales & Customer Analytics Dashboard
+# AI Business Automation Platform
 
-## Overview
+AI-powered support ticket analysis with n8n, OpenAI, PostgreSQL and Docker.
 
-This project analyzes sales and customer performance data using SQL, PostgreSQL, and Tableau Public.
+A customer message is sent to a webhook. An LLM classifies it by category, priority and summary, and the structured result is stored in PostgreSQL for later analytics and reporting.
 
-The dashboard provides interactive business insights into:
+![Workflow](docs/workflow.png)
 
-- Revenue performance
-- Profitability
-- Regional sales distribution
-- Product performance
-- Sales trends over time
+---
 
-The project simulates a real-world Business Intelligence workflow:
+## Workflow Architecture
 
-```text
-CSV Data → PostgreSQL → SQL Analysis → Tableau Dashboard
+```
+Webhook (POST /ticket-analysis)
+   ↓
+OpenAI – Message a model        → classifies the ticket, returns JSON
+   ↓
+Code in JavaScript              → cleans and parses the LLM output
+   ↓
+PostgreSQL – Insert rows        → stores category, priority, summary, message
+```
+
+| Node | Purpose |
+|---|---|
+| **Webhook** | Receives support requests as JSON (`{"message": "..."}`) via HTTP POST |
+| **Message a model** | Sends the message to OpenAI with a prompt that requests a strict JSON response |
+| **Code in JavaScript** | Removes Markdown code fences, parses the JSON and appends the original message |
+| **Insert rows in a table** | Writes the structured ticket into PostgreSQL |
+
+---
+
+## Handling unreliable LLM output
+
+Even with the instruction *"Return ONLY valid JSON"*, the model sometimes wraps its answer in a Markdown code fence (` ```json ... ``` `). Passing that directly to `JSON.parse` would break the workflow. The Code node therefore cleans the response before parsing:
+
+```javascript
+const raw = $input.first().json.output[0].content[0].text;
+const cleaned = raw.replace(/```json/g, '').replace(/```/g, '').trim();
+const parsed = JSON.parse(cleaned);
+
+// Add the original message from the webhook
+parsed.message = $('Webhook').first().json.body.message;
+
+return [{ json: parsed }];
 ```
 
 ---
 
-# Dashboard Preview
+## Prompt
 
-
-
----
-
-# Tableau Dashboard
-
-## Live Dashboard
-
-https://public.tableau.com/app/profile/niklas.rineisen/viz/SalesCustomerAnalyticsDashboard_17788816846190/SalesCustomerAnalyticsDashboard
-
----
-
-# Tech Stack
-
-- PostgreSQL
-- SQL
-- Tableau Public
-- CSV Data Analysis
-- Git & GitHub
-
----
-
-# Features
-
-- Interactive KPI dashboard
-- Revenue analysis
-- Profit analysis
-- Regional sales analysis
-- Product performance tracking
-- Sales trend visualization
-- Interactive region filtering
-- Business insights reporting
-
----
-
-# Key Insights
-
-- The West region generated the highest revenue.
-- Technology products produced the highest total profit.
-- Revenue increased significantly from 2015 to 2017.
-- A small number of products generated a disproportionate share of revenue.
-- Office Supplies and Technology were the strongest-performing categories.
-
----
-
-# Dashboard KPIs
-
-- Total Revenue
-- Total Profit
-- Total Orders
-
----
-
-# Dashboard Components
-
-## Revenue by Region
-Visualizes sales performance across geographic regions.
-
-## Profit by Category
-Shows profitability across product categories.
-
-## Sales Trend Over Time
-Displays revenue growth trends between 2014 and 2017.
-
-## Top Products by Revenue
-Highlights the highest-performing products by sales.
-
----
-
-# SQL Analysis Examples
-
-## Total Revenue
-
-```sql
-SELECT ROUND(SUM("Sales"), 2) AS total_revenue
-FROM superstore;
 ```
+Analyze this customer support request.
+Return ONLY valid JSON in this format:
+{ "category": "", "priority": "", "summary": "" }
 
-## Total Profit
-
-```sql
-SELECT ROUND(SUM("Profit"), 2) AS total_profit
-FROM superstore;
-```
-
-## Revenue by Region
-
-```sql
-SELECT "Region",
-       ROUND(SUM("Sales"), 2) AS revenue
-FROM superstore
-GROUP BY "Region"
-ORDER BY revenue DESC;
-```
-
-## Top Products by Revenue
-
-```sql
-SELECT "Product Name",
-       ROUND(SUM("Sales"), 2) AS revenue
-FROM superstore
-GROUP BY "Product Name"
-ORDER BY revenue DESC
-LIMIT 10;
+Customer message: {{$json["body"]["message"]}}
 ```
 
 ---
 
-# Project Structure
+## Example
 
-```text
-sales-customer-analytics-dashboard/
-│
-├── data/
-├── docs/
-│   └── dashboard.png
-├── sql/
-├── README.md
+**Request**
+
+```bash
+curl -X POST http://localhost:5678/webhook-test/ticket-analysis \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Meine Bestellung #4711 ist seit 10 Tagen nicht angekommen und der Kundenservice antwortet nicht. Ich brauche das Paket dringend!"}'
 ```
 
----
+**Stored result**
 
-# Business Intelligence Workflow
+```json
+{
+  "category": "Delivery Issue",
+  "priority": "High",
+  "summary": "Order #4711 has not arrived after 10 days and customer service is unresponsive. Customer urgently needs the package.",
+  "message": "Meine Bestellung #4711 ist seit 10 Tagen nicht angekommen ..."
+}
+```
 
-1. Imported CSV sales data into PostgreSQL
-2. Created analytical SQL queries
-3. Explored revenue and profitability metrics
-4. Built an interactive Tableau dashboard
-5. Published the dashboard to Tableau Public
-
----
-
-# Future Improvements
-
-- Live PostgreSQL connection with Tableau
-- Advanced KPI calculations
-- Customer segmentation analysis
-- Forecasting and predictive analytics
-- Additional interactive dashboard filters
-- Automated ETL pipeline
+German input is classified correctly and summarized in English, so tickets end up in one consistent format.
 
 ---
 
-# Author
+## Tech Stack
 
-Niklas Ringeisen
+- n8n (workflow automation)
+- OpenAI API
+- JavaScript
+- PostgreSQL 16
+- Docker / Docker Compose
+
+---
+
+## Setup
+
+1. Start the containers:
+
+   ```bash
+   docker compose up -d
+   ```
+
+2. Open n8n at http://localhost:5678 (use Chrome or Firefox; Safari blocks the session cookie on plain HTTP).
+3. Add your own OpenAI and PostgreSQL credentials in n8n.
+4. Open the workflow, click **Execute workflow** and send a test request with the `curl` command above.
+
+> The `/webhook-test/` URL only works while the workflow is waiting for a test event. After publishing, use `/webhook/ticket-analysis`.
+
+---
+
+## Future Improvements
+
+- Power BI dashboard on top of the ticket table (volume by category, share of high-priority tickets)
+- Response node that returns the classification directly to the caller
+- Fixed category list in the prompt for more consistent labels
+- Error branch for invalid LLM output
+
+---
+
+## Screenshots
+
+### Database
+
+![Database](docs/database.png)
+
+### Docker Containers
+
+![Docker](docs/docker.png)
+
+---
+
+## Author
+
+Niklas Ringeisen · [GitHub](https://github.com/Niklasr06) · [LinkedIn](https://www.linkedin.com/in/niklas-ringeisen-77973228a/)
