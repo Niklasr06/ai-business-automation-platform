@@ -1,108 +1,170 @@
-# AI Business Automation Platform
-
-AI-powered workflow automation platform using n8n, PostgreSQL, Docker and OpenAI.
+# Sales & Customer Analytics Dashboard
 
 ## Overview
 
-This project analyzes customer support requests using AI and automatically stores structured ticket data in PostgreSQL.
+This project analyzes sales and customer performance data using SQL, PostgreSQL, and Tableau Public.
 
-The workflow uses OpenAI to classify support tickets by:
-- category
-- priority
-- summary
+The dashboard provides interactive business insights into:
 
-The processed data is then stored in a PostgreSQL database for further analytics and reporting.
+- Revenue performance
+- Profitability
+- Regional sales distribution
+- Product performance
+- Sales trends over time
 
----
+The project simulates a real-world Business Intelligence workflow:
 
-## Features
-
-- AI-powered ticket analysis
-- Priority detection
-- Automatic categorization
-- PostgreSQL data storage
-- JSON processing
-- Dockerized infrastructure
-- Workflow automation with n8n
+```text
+CSV Data → PostgreSQL → SQL Analysis → Tableau Dashboard
+```
 
 ---
 
-## Tech Stack
+# Dashboard Preview
 
-- n8n
+![Dashboard Preview](docs/Sales_Customer_Analytics_Dashboard.png)
+
+---
+
+# Tableau Dashboard
+
+## Live Dashboard
+
+https://public.tableau.com/app/profile/niklas.rineisen/viz/SalesCustomerAnalyticsDashboard_17788816846190/SalesCustomerAnalyticsDashboard
+
+---
+
+# Tech Stack
+
 - PostgreSQL
-- Docker
-- OpenAI API
-- JavaScript
+- SQL
+- Tableau Public
+- CSV Data Analysis
+- Git & GitHub
 
 ---
 
-## Workflow Architecture
+# Features
 
-Manual Trigger  
-↓  
-Edit Fields  
-↓  
-OpenAI Analysis  
-↓  
-JSON Parser  
-↓  
-PostgreSQL Storage
+- Interactive KPI dashboard
+- Revenue analysis
+- Profit analysis
+- Regional sales analysis
+- Product performance tracking
+- Sales trend visualization
+- Interactive region filtering
+- Business insights reporting
 
 ---
 
-## Example AI Output
+# Key Insights
 
-```json
-{
-  "category": "Shipping Issue",
-  "priority": "High",
-  "summary": "Customer reports delayed package delivery."
-}
+- The West region generated the highest revenue.
+- Technology products produced the highest total profit.
+- Revenue increased significantly from 2015 to 2017.
+- A small number of products generated a disproportionate share of revenue.
+- Office Supplies and Technology were the strongest-performing categories.
+
+---
+
+# Dashboard KPIs
+
+- Total Revenue
+- Total Profit
+- Total Orders
+
+---
+
+# Dashboard Components
+
+## Revenue by Region
+Visualizes sales performance across geographic regions.
+
+## Profit by Category
+Shows profitability across product categories.
+
+## Sales Trend Over Time
+Displays revenue growth trends between 2014 and 2017.
+
+## Top Products by Revenue
+Highlights the highest-performing products by sales.
+
+---
+
+# SQL Analysis Examples
+
+## Total Revenue
+
+```sql
+SELECT ROUND(SUM("Sales"), 2) AS total_revenue
+FROM superstore;
+```
+
+## Total Profit
+
+```sql
+SELECT ROUND(SUM("Profit"), 2) AS total_profit
+FROM superstore;
+```
+
+## Revenue by Region
+
+```sql
+SELECT "Region",
+       ROUND(SUM("Sales"), 2) AS revenue
+FROM superstore
+GROUP BY "Region"
+ORDER BY revenue DESC;
+```
+
+## Top Products by Revenue
+
+```sql
+SELECT "Product Name",
+       ROUND(SUM("Sales"), 2) AS revenue
+FROM superstore
+GROUP BY "Product Name"
+ORDER BY revenue DESC
+LIMIT 10;
 ```
 
 ---
 
-## Future Improvements
+# Project Structure
 
-- FastAPI backend
-- React dashboard
-- Power BI analytics dashboard
-- Webhook/API integration
-- Real-time analytics
-
----
-
-## Setup
-
-### Start containers
-
-```bash
-docker compose up -d
+```text
+sales-customer-analytics-dashboard/
+│
+├── data/
+├── docs/
+│   └── dashboard.png
+├── sql/
+├── README.md
 ```
 
-### Open n8n
+---
 
-http://localhost:5678
+# Business Intelligence Workflow
+
+1. Imported CSV sales data into PostgreSQL
+2. Created analytical SQL queries
+3. Explored revenue and profitability metrics
+4. Built an interactive Tableau dashboard
+5. Published the dashboard to Tableau Public
 
 ---
 
-## Author
+# Future Improvements
+
+- Live PostgreSQL connection with Tableau
+- Advanced KPI calculations
+- Customer segmentation analysis
+- Forecasting and predictive analytics
+- Additional interactive dashboard filters
+- Automated ETL pipeline
+
+---
+
+# Author
 
 Niklas Ringeisen
-
----
-
-## Screenshots
-
-### Workflow
-
-![Workflow](docs/workflow.png)
-
-### Database
-
-![Database](docs/database.png)
-
-### Docker Containers
-
-![Docker](docs/docker.png)
