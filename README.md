@@ -22,7 +22,7 @@ CSV Data → PostgreSQL → SQL Analysis → Tableau Dashboard
 
 # Dashboard Preview
 
-![Dashboard Preview](docs/Sales_Customer_Analytics_Dashboard.png)
+
 
 ---
 
